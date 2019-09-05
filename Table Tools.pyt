@@ -307,17 +307,22 @@ class evalExtremes(object):
                     evalData[field]=val
                     i += 1
                 s = pandas.Series(evalData)
-                if s.nlargest(2)[0] == s.nlargest(2)[1]:
-                    tieDetect = "Yes"
-                else:
-                    tieDetect = "No"
+
                 if evalType == "Highest Value":
+                    if s.nlargest(2)[0] == s.nlargest(2)[1]:
+                        tieDetect = "Yes"
+                    else:
+                        tieDetect = "No"
                     winValue = s.nlargest(1,keep=tieBreaker.lower())[0]
                     if wFV == "Use Winning Field's Alias":
                         winField = fieldDict[s.nlargest(1,keep=tieBreaker.lower()).index[0]][1]
                     else:
                         winField = s.nlargest(1,keep=tieBreaker.lower()).index[0]
                 else:
+                    if s.nsmallest(2)[0] == s.nsmallest(2)[1]:
+                        tieDetect = "Yes"
+                    else:
+                        tieDetect = "No"
                     winValue = s.nsmallest(1,keep=tieBreaker.lower())[0]
                     if wFV == "Use Winning Field's Alias":
                         winField = fieldDict[s.nsmallest(1,keep=tieBreaker.lower()).index[0]][1]
@@ -406,7 +411,31 @@ class rankAcross(object):
             parameterType = "Optional",
             direction = "Output")
 
-        params = [param0,param1,param2,param3,param4,param5]
+        #param6 logic
+        param6 = arcpy.Parameter(
+            displayName = "Style for Output Rank Fields",
+            name = "fieldStyle",
+            datatype = "GPString",
+            parameterType = "Required",
+            direction = "Input",
+            category = "Output Fields Configuration")
+
+        param6.filter.type = "ValueList"
+        param6.filter.list = ["Use Field's Name","Use Field's Alias"]
+        param6.value = "Use Field's Name"
+
+        #param7 logic
+        param7 = arcpy.Parameter(
+            displayName = "Rank Prefix",
+            name = "rankPrefix",
+            datatype = "GPString",
+            parameterType = "Required",
+            direction = "Input",
+            category = "Output Fields Configuration")
+
+        param7.value = "r"
+
+        params = [param0,param1,param2,param3,param4,param5,param6,param7]
         return params
 
     def isLicensed(self):
@@ -459,9 +488,11 @@ class rankAcross(object):
         inFile = parameters[0].valueAsText
         inFields = parameters[1].valueAsText
         rankType = parameters[2].valueAsText
-        ranks = parameters[3].valueAsText
+        ranks = int(parameters[3].valueAsText)
         outType = parameters[4].valueAsText
         outFile = parameters[5].valueAsText
+        fieldStyle = parameters[6].valueAsText
+        prefix = parameters[7].valueAsText
 
         #Evaluate whether to modify input or create a copy
         if outType == "Create Copy":
@@ -499,8 +530,44 @@ class rankAcross(object):
                 messages.addMessage("Multiple numeric field types detected. Most complex type is Long, therefore Long format will be used in the output.")
                 outFieldType = "Long"
         else:
-            messages.addMessage("Single numeric field ({0} type) for all selected evaluation fields. Output fields will therefore be type {1}".format(fieldTypes[0],fieldTypes[0]))
+            messages.addMessage("Single numeric field type ({0}) for all selected evaluation fields. Output fields will therefore be type {1}".format(fieldTypes[0],fieldTypes[0]))
             outFieldType = fieldTypes[0]
         evalFieldCount = len(fieldList)
+
+        #Add new fields to input
+        i = 1
+        while i <= ranks:
+
+            fieldName = "{0}{1}_Field".format(prefix,i)
+            arcpy.AddField_management(processInput,fieldName,"TEXT","","","50",fieldName)
+            messages.addMessage("Added {0} field to output...".format(fieldName))
+            fieldList.append(fieldName)
+
+            valName = "{0}{1}_Value".format(prefix,i)
+            arcpy.AddField_management(processInput,valName,outFieldType,"","","",valName)
+            messages.addMessage("Added {0} field to output...".format(valName))
+            fieldList.append(valName)
+
+            i += 1
+
+        #Evaluate values and write results
+        countObject = arcpy.GetCount_management(inFile)
+        count = int(countObject[0])
+        arcpy.SetProgressor("Step","Evaluating column values...",1,count,1)
+
+        with arcpy.da.UpdateCursor(processInput,fieldList) as uCursor:
+            warnings = 0
+            r = 1
+            for row in uCursor:
+                arcpy.SetProgressorLabel("Processing {0} of {1} features".format(r,count))
+                i = 0
+                evalData = {}
+                while i <= evalFieldCount - 1:
+                    field = fieldList[i]
+                    val = row[i]
+                    evalData[field]=val
+                    i += 1
+                s = pandas.Series(evalData)
+                if rankType == "Top":
 
         return
