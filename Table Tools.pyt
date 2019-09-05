@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import arcpy
+import arcpy, time
 
 
 class Toolbox(object):
@@ -567,7 +567,17 @@ class rankAcross(object):
                     val = row[i]
                     evalData[field]=val
                     i += 1
+
                 s = pandas.Series(evalData)
                 if rankType == "Top":
+                    rankResults = s.nlargest(ranks)
+                else:
+                    rankResults = s.nsmallest(ranks)
+                for n in range(ranks-1):
+                    rankVal = rankResults[n]
+                    if fieldStyle == "Use Winning Field's Alias":
+                        winField = fieldDict[rankResults.index[n]][1]
+                    else:
+                        winField = rankResults.index[n]
 
         return
