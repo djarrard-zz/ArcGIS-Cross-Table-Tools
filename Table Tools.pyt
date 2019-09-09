@@ -556,9 +556,11 @@ class rankAcross(object):
         arcpy.SetProgressor("Step","Evaluating column values...",1,count,1)
 
         with arcpy.da.UpdateCursor(processInput,fieldList) as uCursor:
+            base = len(inFields.split(";"))
             warnings = 0
             r = 1
             for row in uCursor:
+                base = len(inFields.split(";"))
                 arcpy.SetProgressorLabel("Processing {0} of {1} features".format(r,count))
                 i = 0
                 evalData = {}
@@ -573,11 +575,16 @@ class rankAcross(object):
                     rankResults = s.nlargest(ranks)
                 else:
                     rankResults = s.nsmallest(ranks)
-                for n in range(ranks-1):
+                for n in range(ranks):
                     rankVal = rankResults[n]
-                    if fieldStyle == "Use Winning Field's Alias":
+                    if fieldStyle == "Use Field's Alias":
                         winField = fieldDict[rankResults.index[n]][1]
                     else:
                         winField = rankResults.index[n]
+                    row[base + n] = winField
+                    row[base + n + 1] = rankVal
+                    base += 1
+                uCursor.updateRow(row)
+                arcpy.SetProgressorPosition()
 
         return
