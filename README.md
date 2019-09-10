@@ -22,6 +22,7 @@ This project is intended as an immediately usable resource in the ArcGIS Pro env
  
  1. ArcGIS Pro 2.3.2 or higher. Lower versions may work but have not been tested.
  2. The Geoprocessing tools used in the toolbox only require a Basic license (Standard and Advanced are of course supported, but not required).
+ 3. ArcMap has not been tested with this toolbox.
  
  ## Issues
  
