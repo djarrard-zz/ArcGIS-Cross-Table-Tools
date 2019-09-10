@@ -28,6 +28,10 @@ This project is intended as an immediately usable resource in the ArcGIS Pro env
  
 If there are bugs/issues with the tool that prevent usage or create incorrect results, please let me know by submitting an issue. I am also open to expanding the toolbox to include other use cases that require cross-table examination in a similar fashion. Please feel free to submit enhancement requests along those lines.
 
+## Contributing
+
+I follow the Esri Github guidelines for contributing. Please see [guidelines for contributing](https://github.com/esri/contributing).
+
 ## Licensing
 
 Licensed under the Apache License, Version 2.0 (the "License");
