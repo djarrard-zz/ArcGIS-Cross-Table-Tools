@@ -101,7 +101,7 @@ class evalExtremes(object):
 
         param6.filter.type = "ValueList"
         param6.filter.list = ["Use Winning Field's Name","Use Winning Field's Alias"]
-        param6.value = "Use Winning Field's Name"
+        param6.value = "Use Winning Field's Alias"
 
         #param7 logic
         param7 = arcpy.Parameter(
@@ -422,7 +422,7 @@ class rankAcross(object):
 
         param6.filter.type = "ValueList"
         param6.filter.list = ["Use Field's Name","Use Field's Alias"]
-        param6.value = "Use Field's Name"
+        param6.value = "Use Field's Alias"
 
         #param7 logic
         param7 = arcpy.Parameter(
